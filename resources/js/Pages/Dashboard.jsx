@@ -14,7 +14,7 @@ export default function Dashboard({ userName , absens , clients , tasks }) {
     const [hiddenRevision, setHiddenRevision] = useState(false);
     const [hiddenIdle, setHiddenIdle] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({
-        absence : '',
+        absence : 'Hadir',
     });
 
     const urgent = [];
@@ -34,14 +34,12 @@ export default function Dashboard({ userName , absens , clients , tasks }) {
         const diffTime = deadline - today;
         const remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // days until deadline
     
-        if (remainingDays <= 1) {
+        if (remainingDays >= 0 && remainingDays <= 3) {
             urgent.push(task);
-        } else if (remainingDays >= 2 && remainingDays <= 3) {
+        } else if (remainingDays >= 4 && remainingDays <= 7) {
             soon.push(task); // Soon
-        } else if (remainingDays >= 4 && remainingDays <= 6) {
+        } else if (remainingDays >= 8) {
             up_coming.push(task); // Upcoming
-        } else {
-            return 'bg-blue-700'; // Later
         }
     }
 
@@ -157,7 +155,7 @@ export default function Dashboard({ userName , absens , clients , tasks }) {
     function submit(e) {
         e.preventDefault();
         // console.log(e); // Check if data is correct before sending
-        post(route('absence.store'), {
+        post(route('absen.store'), {
             onSuccess: () => window.location.reload(),
         });
     }
@@ -224,7 +222,7 @@ export default function Dashboard({ userName , absens , clients , tasks }) {
                                                     <th className='w-40'>Nama</th>
                                                     <th className='w-40'>Type</th>
                                                     <th className='w-40'>Location</th>
-                                                    <th className='w-40'>Congtract</th>
+                                                    <th className='w-40'>Contract</th>
                                                     <th className='w-40'>Product</th>
                                                     <th className='w-40'>Status</th>
                                                 </tr>
@@ -263,15 +261,16 @@ export default function Dashboard({ userName , absens , clients , tasks }) {
                                             value={data.absence}
                                             onChange={(e)=>setData('absence', e.target.value)}
                                             >
+                                                <option value="Hadir">Hadir</option>
+                                                <option value="Balek">Pulang</option>
                                                 <option value="Sakit">Sakit</option>
                                                 <option value="Izin">Izin</option>
-                                                <option value="Hadir">Hadir</option>
-                                                <option value="Balek">Balek</option>
+                                                <option value="Lembur">Lembur</option>
+                                                <option value="Pulang Lembur">Pulang Lembur</option>
                                             </select>
                                             <button type='submit' className='bg-emerald-500 font-bold px-5 py-2'>
                                                 Submit
                                             </button>
-
                                         </form>
                                     </div>
                                     <table className="w-full border-collapse ">

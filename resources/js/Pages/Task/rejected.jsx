@@ -180,9 +180,6 @@ export default function index({ tasks, userName  }) { //tasks diambil dari TaskC
                                             </select>
                                     </div>
                                 </div>
-                                <div className="">
-                                    <Link href={route('task.create')} className="px-5 py-4 bg-black text-white rounded-lg">+ Tambah Data</Link>
-                                </div>
                             </div>
                             {/* TASKK */}
                     <div className="overflow-hidden  border-zinc-50 mt-10 border-2 shadow-lg rounded-2xl p-4 flex flex-col gap-5">

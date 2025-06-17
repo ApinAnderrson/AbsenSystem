@@ -13,15 +13,33 @@ export default function index({ tasks }) {
     const filteredTask = tasks;
     
 
-    const { data, setData, put, processing, errors, reset } = useForm({
+    const { data, setData, put, post, processing, errors, reset } = useForm({
         uuid: '',
-        status: ''
+        status: '',
+        revision: "",
     });
         
     const [showDeleteEdit, setShowDeleteEdit] = useState(false);
     const [hiddenSubmitLink, setHiddenSubmitLink] = useState(true);
     const [hiddenLinkContainer, setHiddenLinkContainer] = useState(null);
 
+    const revisionRef = useRef(null);
+
+    const textAreaAdjust = (element) => {
+        element.style.height = "1px";
+        element.style.height = `${0 + element.scrollHeight}px`;
+    };
+
+    // Adjust textarea height on value change
+    useEffect(() => {
+        if (revisionRef.current) {
+            textAreaAdjust(revisionRef.current);
+        }
+    }, [data.revision]);
+    
+    const revisionChange = (e) => {
+        setData("revision", e.target.value);  
+    };
 
     // console.log(clients.password)
 
@@ -61,13 +79,17 @@ useEffect(() => {
         
         put(route('result.update', {result: data.uuid}), {
             onSuccess: () => {
-                if(data.status === 'Rejected'){
-                router.delete(route('result.destroy', data.uuid ), {
-                    onSuccess: () => {
-                        window.location.reload()
-                    },
-                    onError: (errors) => console.error(errors),
-                });
+                if(data.status === 'Rejected' ){
+                    post(route('rejectedRevision.store', data.uuis), {
+                        onSuccess: () =>{
+                            router.delete(route('result.destroy', data.uuid ), {
+                                onSuccess: () => {
+                                    window.location.reload()
+                                },
+                                onError: (errors) => console.error(errors),
+                            });
+                        }
+                    })
                 } else {
                     onSuccess: () => {
                         window.location.reload()
@@ -114,7 +136,7 @@ useEffect(() => {
                             </thead>
                             <tbody>
                                 {filteredTask.map((task,index)=>(
-                                    task.status !== 'Approved' && task.status !== 'Rejected' && (
+                                    task.status === "In Review" && (
                                     <Fragment key = {task.uuid}>
                                         {console.log(task.status)}
                                         <tr className={``}>
@@ -155,6 +177,12 @@ useEffect(() => {
                                                                         <label htmlFor={`list-radio-rejected${index}`} className="w-full py-3 ms-2 text-sm font-medium text-gray-900 ">Rejected</label>
                                                                     </div>
                                                                 </li>
+                                                                <li className="w-full border-b sm:border-b-0 sm:border-r">
+                                                                    <div className="flex items-center ps-3">
+                                                                        <input id={`list-radio-cancel${index}`} checked={data.status === "Cancel"} onChange={(e)=>setData('status', e.target.value)} type="radio" value="Cancel" name={`list-radio${index}`} className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-900 focus:ring-blue-500 "/>
+                                                                        <label htmlFor={`list-radio-cancel${index}`} className="w-full py-3 ms-2 text-sm font-medium text-gray-900 ">Cancel</label>
+                                                                    </div>
+                                                                </li>
                                                             </ul>
                                                             <button type="submit" className="py-3 px-8 rounded-md bg-yellow-500" disabled={processing}>
                                                                 Send
@@ -164,6 +192,17 @@ useEffect(() => {
                                                     </div>
                                                     <div className='bg-white p-5'>
                                                         {task.result?.link}
+                                                    </div>
+                                                    <div className={`${data.status === 'Rejected' ? "" : "hidden"} mb-5`}>
+                                                        <textarea
+                                                            ref={revisionRef}
+                                                            value={data.revision}
+                                                            onChange={revisionChange}
+                                                            id="textarea"
+                                                            name='description'
+                                                            placeholder="Form description"
+                                                            className="mt-4 block w-full min-h-[2.5rem] border-0 border-b border-gray-400 outline-none focus:ring-0 focus:border-black resize-none overflow-hidden"
+                                                        />
                                                     </div>
                                                 </div>
                                             </td>

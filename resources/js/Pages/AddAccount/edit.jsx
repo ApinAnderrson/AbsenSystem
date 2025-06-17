@@ -74,7 +74,7 @@ export default function edit ({ user }) {
                                                                 required
                                                             >
                                                                 <option value="" selected disabled hidden>Select</option>
-                                                                <option value="user" >User</option>
+                                                                <option value="user" >Member</option>
                                                                 <option value="intern">Intern</option>
                                                                 <option value="admin">Admin</option>
                                                             </select>

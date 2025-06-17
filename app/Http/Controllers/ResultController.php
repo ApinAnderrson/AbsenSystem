@@ -80,7 +80,7 @@ class ResultController extends Controller
         ]);
 
 
-        return redirect()->route('task.index')->with('success', 'Congrats! You Finish Your Task!😍');
+        return redirect()->route('result.index')->with('success', 'Congrats! You Finish Your Task!😍');
     }
 
     /**

@@ -1,4 +1,4 @@
-import InputError from '@/Components/InputError';
+    import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
@@ -6,44 +6,32 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Fragment, useState, useRef, useEffect } from 'react';
 
-export default function index({ clients }) {
+export default function index({ clients, cicilans }) {
 
-    const { data, setData, post, processing, errors, reset } = useForm({
-        name: '',
-        role: 'user',
-        email: '',
-        password: '',
-        password_confirmation: '',
-    });
+    
         
     const [showDeleteEdit, setShowDeleteEdit] = useState(false);
 
-    // console.log(clients.password)
+    // console.log(cicilans)
 
     const dropdownRefs = useRef([]);
 
-useEffect(() => {
-    function handleClickOutside(e) {
-        if (
-            showDeleteEdit !== false &&
-            dropdownRefs.current[showDeleteEdit] &&
-            !dropdownRefs.current[showDeleteEdit].contains(e.target)
-        ) {
-            setShowDeleteEdit(false);
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (
+                showDeleteEdit !== false &&
+                dropdownRefs.current[showDeleteEdit] &&
+                !dropdownRefs.current[showDeleteEdit].contains(e.target)
+            ) {
+                setShowDeleteEdit(false);
+            }
         }
-    }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-}, [showDeleteEdit]);
+        document.addEventListener('mousedown', handleClickOutside);
+            return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showDeleteEdit]);
 
-    const submit = (e) => {
-        e.preventDefault();
-
-        post(route('new_client.store'), {
-            onFinish: () => reset('password', 'password_confirmation', 'name', 'email'),
-        });
-    };
+    
     
     return (
         <AuthenticatedLayout
@@ -97,7 +85,21 @@ useEffect(() => {
                                             <td>{client.package}</td>
                                             <td>{client.status}</td>
                                             <td>{client.contract_end}</td>
-                                            <td>{client.payment_month}</td>
+                                            <td>{client.payment_month !== "-" 
+                                                ? client.payment_month 
+                                                : cicilans
+                                                    .filter(c => c.client_uuid === client.uuid)
+                                                    .map((cicilan, index)=>{
+                                                        const date = new Date(cicilan.tanggal);
+                                                        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                                                        const day = String(date.getDate()).padStart(2, '0');
+                                                        const month = monthNames[date.getMonth()];
+                                                        const year = date.getFullYear();
+                                                        const formattedDate = `${day} ${month} ${year}`;
+                                                        return <span key={index}>{formattedDate} {`${cicilan.status_cicilan === 'true' ? '✅' : ''}`} <br /> </span>;
+                                                    }
+                                                )}
+                                            </td>
                                             <td className=''>
                                                 <button>
                                                     <svg xmlns="http://www.w3.org/2000/svg" onClick={()=>setShowDeleteEdit(index)} className={``} width="16" height="16" fill="currentColor" >

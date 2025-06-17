@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\absen;
 use App\Http\Requests\StoreabsenRequest;
 use App\Http\Requests\UpdateabsenRequest;
+use App\Models\newClient;
+use App\Models\task;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
@@ -18,7 +20,10 @@ class AbsenController extends Controller
      */
     public function index()
     {
-        //
+        $absens = absen::all();
+        return inertia('Absen/index',  [
+            'absens' => $absens
+        ]);
     }
 
     /**
@@ -34,6 +39,7 @@ class AbsenController extends Controller
      */
     public function store(StoreabsenRequest $request, User $user)
     {
+        // dd($request);
         $user = Auth::user();
         $nowDate = now('Asia/Jakarta')->toDateString();
         $nowTime = now('Asia/Jakarta')->toTimeString();
@@ -44,31 +50,52 @@ class AbsenController extends Controller
         $todayAbsen  = absen::where('user', $user->name)
                             ->where('tanggal', $nowDate)
                             ->first();
+        
+        $todayLembur = absen::where('user', $user->name)
+            ->where('tanggal', $nowDate)
+            ->where('status', 'Lembur') 
+            ->first()   ;
 
-        if($validated['absence'] !== 'Balek') {
+        if($validated['absence'] !== 'Balek' && $validated['absence'] !== 'Pulang Lembur') {
             if(!$todayAbsen){
                 absen::create([
                     'user' => $user->name,
                     'status' => $validated['absence'],
                     'tanggal' => $nowDate,
                     'jam_datang' => $nowTime,
-                    'jam_balek' => $validated['absence'] === "Hadir" ? null : $nowTime,
+                    'jam_balek' => $validated['absence'] === "Hadir" || $validated['absence'] === "Lembur"  ? null : $nowTime,
                 ]);
-            } else {
+            } else if(!$todayLembur){
+                absen::create([
+                    'user' => $user->name,
+                    'status' => $validated['absence'],
+                    'tanggal' => $nowDate,
+                    'jam_datang' => $nowTime,
+                    'jam_balek' => $validated['absence'] === "Hadir" || $validated['absence'] === "Lembur" ? null : $nowTime,
+                ]);
+            } 
+            else {
             return Redirect::back()->withErrors(['absence' => 'You already submitted Hadir today.']);
             }
         }
-
-        if($validated['absence'] === 'Balek'){
+        // dd($todayAbsen);
+        
+        if($validated['absence'] === 'Balek' || $validated['absence'] === 'Pulang Lembur') {
             if(!$todayAbsen){
+                dd($validated);
                 return Redirect::back()->withErrors(['absence' => 'You already submitted Hadir today.']);
-                
-            }else{
+            } else if($validated['absence'] === 'Pulang Lembur'){
+                // dd($todayLembur);
+
+                $todayLembur->update([
+                    'jam_balek' => $nowTime
+                ]);
+
+            }else if($validated['absence'] === "Balek"){
                 $todayAbsen->update([
                     'jam_balek' => $nowTime,
                 ]);
-            ;
-        }
+            }
         }
         
 

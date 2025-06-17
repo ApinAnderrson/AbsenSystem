@@ -3,12 +3,16 @@
 use App\Http\Controllers\AbsenController;
 use App\Http\Controllers\AddAccountController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\deleteCicilan;
+use App\Http\Controllers\KalenderController;
 use App\Http\Controllers\NewClientController;
 use App\Http\Controllers\PersonalDashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RejectedRevisionController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskStatusController;
+use App\Http\Controllers\UpdateDragDropController;
 use App\Http\Controllers\UpdateTaskSubmit;
 use App\Models\absen;
 use App\Models\newClient;
@@ -39,21 +43,13 @@ Route::middleware(['auth','verified'])->group(function() {
     Route::resource('/result', ResultController::class);
     
     Route::resource('/personal_dashboard', PersonalDashboardController::class);
-    Route::resource('/absence', AbsenController::class);
-    Route::get('rejected', function ()  {
-        $tasks = task::all();
-        return Inertia::render('Task/rejected', [
-            'userName' => Auth::user()->name,
-            'tasks' => $tasks
-        ]);
-    })->name('rejected');
-    Route::get('approved', function ()  {
-        $tasks = Task::with('result')->get();
-        return Inertia::render('Task/approved', [
-            'userName' => Auth::user()->name,
-            'tasks' => $tasks
-        ]);
-    })->name('approved');
+    Route::resource('absen', AbsenController::class);
+    
+    Route::resource('result', ResultController::class);
+    Route::put('result', [UpdateTaskSubmit::class, 'update'])->name('update_task_submit.update');
+    
+    Route::resource('kalender', KalenderController::class);
+    Route::put('kalender', [UpdateDragDropController::class, 'update'])->name('drag_and_drop_update.update');
 });
 
 
@@ -63,12 +59,13 @@ Route::middleware(['auth', 'admin'])->group(function(){
     Route::get('add_account/{user}/edit', [ProfileController::class, 'edit'])->name('add_account.edit');
     Route::put('add_account/{user}', [ProfileController::class, 'update'])->name('add_account.update');
     Route::delete('add_account/{user}', [ProfileController::class, 'destroy'])->name('add_account.destroy');
+    Route::delete('deleteCicilan/{uuid}', [deleteCicilan::class, 'destroy'])->name('deleteCicilan.destroy');
+    Route::post('storeCicilan/{uuid}', [deleteCicilan::class, 'store'])->name('storeCicilan.store');
 
     Route::resource('new_client', NewClientController::class);
 
-    Route::resource('result', ResultController::class);
-    Route::put('result', [UpdateTaskSubmit::class, 'update'])->name('update_task_submit.update');
-    // Route::put('result/{result}', [ResultController::class, 'update']) -> name('result.update');
+    Route::get('result', [ResultController::class, 'index']) -> name('result.index');
+    Route::post('rejectedRevision', [RejectedRevisionController::class, 'store']) -> name('rejectedRevision.store');
 });
 
 

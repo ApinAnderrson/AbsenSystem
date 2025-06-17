@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\cicilan;
 use App\Models\newClient;
 use App\Http\Requests\StorenewClientRequest;
 use App\Http\Requests\UpdatenewClientRequest;
+use App\Models\task;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Str;
@@ -20,8 +22,10 @@ class NewClientController extends Controller
     public function index()
     {
         $clients = newClient::all();
+        $cicilans = cicilan::all();
         return inertia('NewClient/index', [
             'clients' => $clients,
+            'cicilans' => $cicilans,
         ]);
     }
 
@@ -40,7 +44,7 @@ class NewClientController extends Controller
      */
     public function store(StorenewClientRequest $request)
     {
-        // dd($request);
+        // dd($request->fase_pembayaran[1]);
         $validated = $request->validate([
             'company_name' => 'string|required',
             'type' => 'string|required',
@@ -48,13 +52,14 @@ class NewClientController extends Controller
             'contract_tahun' => 'string|nullable',
             'contract_bulan' => 'string|required',
             'package' => 'string|required',
-            'status' => 'string|required',
+            'status' => 'required',
+            'cicil' => '',
+            'fase_pembayaran.*.cicilan' => 'string',
+            'fase_pembayaran.*.tanggal' => 'date',
         ]);
-
-
-
+        
         $today = now('Asia/Jakarta');
-
+        
         $contract = $validated['contract_tahun'] . ' Tahun ' . $validated['contract_bulan'] . ' Bulan';
 
         $month = (int) $validated['contract_bulan'];
@@ -68,13 +73,22 @@ class NewClientController extends Controller
 
 
         $status = Str::lower($validated['status']);
-        $payment_month = $status === 'lunas' ?  $today->format('F') : "-";
-
-
+        $payment_month = $status === 'lunas' ?  $today->format('F') . '✅' : "-";
+        
         $clientUuid = Str::uuid()->toString();
 
         // dd($contractEnd->toDateString(), $payment_month);
-
+        
+        foreach ($request->fase_pembayaran as $fase) {
+            // echo $fase['cicilan'] . ' - ' . $fase['tanggal'] . '<br>';
+            // dd($fase['cicilan']);
+            cicilan::create([
+                'client_uuid' => $clientUuid,
+                'cicilan' => $fase['cicilan'],
+                'tanggal' => $fase['tanggal'],
+            ]);
+        };
+        
         newClient::create([
             'uuid' => $clientUuid,
             'company_name' => $validated['company_name'],
@@ -86,6 +100,7 @@ class NewClientController extends Controller
             'contract_end' => $contractEnd->toDateString(),
             'payment_month' => $payment_month,
         ]);
+
 
         return Redirect::to('new_client');
     }
@@ -101,20 +116,23 @@ class NewClientController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(newClient $newClient)
-    {
-        
-        return inertia('NewClient/edit', [
-            'clients' => $newClient,
-        ]);
-    }
+        public function edit(newClient $newClient)
+        {
+            $client = $newClient->load('cicilans'); // Simple and clean
+            // dd($client);
+            // $cicilans = newClient::with('cicilan')->get();
+            return inertia('NewClient/edit', [
+                'clients' => $client,
+            ]);
+        }
 
     /**
      * Update the specified resource in storage.
      */
     public function update(UpdatenewClientRequest $request, newClient $newClient)
     {
-        // dd($newClient->uuid);
+        // dd($newClient->status);
+        
         $validated = $request->validate([
             'company_name' => 'string|required',
             'type' => 'string|required',
@@ -138,13 +156,11 @@ class NewClientController extends Controller
 
         $contractEnd = now()->addYears($totalYears)->addMonths($remainingMonths);
 
-
         $status = Str::lower($validated['status']);
-        $payment_month = $status === 'lunas' ? $today->format('F') : "-";
-
+        $payment_month = $status === 'lunas' ? $today->format('F').'✅' : "-";
 
         $uuid = $newClient->uuid;
-         
+        // dd($array);
 
         $update_client = newClient::where('uuid', $uuid);
         $update_client->update([
@@ -157,9 +173,19 @@ class NewClientController extends Controller
             'contract_end' => $contractEnd->toDateString(),
             'payment_month' => $payment_month,
         ]);
-        return Redirect::to('new_client');
+
+        // $client = NewClient::where('uuid', $uuid)->firstOrFail();
+
+        // // Update logic here...
+
+        // $hasCicilan = $client->cicilans()->exists(); // returns true/false
+
+        // return redirect()->back()->with([
+        //     'has_cicilan' => $hasCicilan,
+        // ]);
 
 
+        // return Redirect::to('new_client');
     }
 
     /**
@@ -167,9 +193,12 @@ class NewClientController extends Controller
      */
     public function destroy(newClient $newClient)
     {
+        // dd($newClient->uuid);
         $uuid = $newClient->uuid;
         $newClient = newClient::where('uuid', $uuid);
+        $cicilan = cicilan::where('client_uuid', $uuid);
         $newClient->delete();
+        $cicilan->delete();
 
         return Redirect::to('new_client');
     }

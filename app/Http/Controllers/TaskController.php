@@ -21,7 +21,7 @@ class TaskController extends Controller
     public function index()
     {
         //
-        $tasks = task::all();
+        $tasks = task::with(['result', 'rejectedRevision'])->get();
         return inertia('Task/index',[
             'tasks' => $tasks,
             'userName' => Auth::user()->name,

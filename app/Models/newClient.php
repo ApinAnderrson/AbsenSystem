@@ -26,5 +26,9 @@ class newClient extends Model
     {
         return 'uuid';
     }
-    
+
+    public function cicilans()
+    {
+        return $this->hasMany(cicilan::class, 'client_uuid', 'uuid');
+    }
 }

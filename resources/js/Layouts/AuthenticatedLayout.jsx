@@ -45,17 +45,17 @@ export default function AuthenticatedLayout({ header, children }) {
                                         Task
                                     </NavLink>
                                     <NavLink
-                                        href={route('rejected')} //ini sama dengan NAME di route/web.php, disana namenya cuma task tapi karena kita ingin akses index makanya .index
-                                        active={route().current('rejected')}
+                                        href={route('absen.index')} //ini sama dengan NAME di route/web.php, disana namenya cuma task tapi karena kita ingin akses index makanya .index
+                                        active={route().current('absen.index')}
                                     >
-                                        Rejected
+                                        Absensi
                                     </NavLink>
                                     <NavLink
-                                        href={route('approved')} //ini sama dengan NAME di route/web.php, disana namenya cuma task tapi karena kita ingin akses index makanya .index
-                                        active={route().current('approved')}
+                                        href={route('kalender.index')} //ini sama dengan NAME di route/web.php, disana namenya cuma task tapi karena kita ingin akses index makanya .index
+                                        active={route().current('kalender.index')}
                                     >
-                                        Approved
-                                    </NavLink>
+                                        Kalender
+                                    </NavLink> 
                                 </div>
                             </div>
 

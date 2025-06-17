@@ -4,6 +4,7 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 
 export default function create({}) {
@@ -14,8 +15,38 @@ export default function create({}) {
         contract_tahun: '',
         contract_bulan: '',
         package: '',
-        status: '',
+        status: 'Lunas',
+        cicil: '',
+        fase_pembayaran: [{ cicilan: "", tanggal: '' }],
     });
+
+    useEffect(() => {
+        const jumlah = parseInt(data.cicil || 0);
+    
+        if (data.status === "Cicil" && jumlah > 0) {
+            // Hanya update jika panjang fase_pembayaran tidak sama
+            if (data.fase_pembayaran.length !== jumlah) {
+                const fase = Array.from({ length: jumlah }, (_, i) => ({
+                    cicilan: `Cicilan ${i + 1}`,
+                    tanggal: data.fase_pembayaran[i]?.tanggal || '',
+                }));
+                console.log("CICIL:", data.cicil);
+console.log("Jumlah yang akan dibuat:", jumlah);
+console.log("Sebelum Update fase_pembayaran:", data.fase_pembayaran);
+console.log("Setelah Update fase_pembayaran:", fase);
+                setData('fase_pembayaran', fase);
+            }
+        }
+    
+        if (data.status !== "Cicil") {
+            if (data.fase_pembayaran.length > 0) {
+                setData('fase_pembayaran', []);
+            }
+        }
+    }, [data.cicil, data.status]);
+
+    console.log(data);
+
     const submit = (e) => {
         e.preventDefault();
 
@@ -23,6 +54,7 @@ export default function create({}) {
             onFinish: () => reset('password', 'password_confirmation', 'name', 'email'),
         });
     };
+
 
     return (
         <AuthenticatedLayout
@@ -165,25 +197,64 @@ export default function create({}) {
                                     value="Status"
                                 />
 
-                                <TextInput
-                                    id="status"
-                                    name="status"
-                                    value={data.status}
-                                    className="mt-1 block w-full bg-transparent border-0 border-b border-gray-400"
-                                    autoComplete="status"
-                                    onChange={(e) =>
-                                        setData('status', e.target.value)
-                                    }
-                                    required
-                                />
+                                <div className='flex items-center gap-10'>
+                                    <select
+                                        id="status"
+                                        name="status"
+                                        value={data.status}
+                                        className="mt-1 block w-full bg-transparent border-0 border-b border-gray-400"
+                                        autoComplete="status"
+                                        onChange={(e) =>
+                                            setData('status', e.target.value)
+                                        }
+                                    >
+                                        <option value="Lunas">Lunas</option>
+                                        <option value="Cicil">Cicil</option>
+                                    </select>
+                                    <div className={`${data.status === 'Cicil' ? '' : 'hidden'} flex items-center`}>
+                                        <input
+                                            id="cicil"
+                                            name="cicil"
+                                            value={data.cicil}
+                                            className={` mt-1 block bg-transparent shadow-sm border-0 border-b border-gray-400 focus:border-black focus:ring-0 outline-none active:border-b`}
+                                            type="number"
+                                            min="1"
+                                            max="10"
+                                            onChange={(e) => setData('cicil', e.target.value)}
+                                        /> 
+                                        kali
+                                    </div>
+                                </div>
 
                                 <InputError
                                     message={errors.status}
                                     className="mt-2"
                                 />
                             </div>
-                            
 
+                            <div className="mb-4 grid grid-cols-2 gap-5">
+                            {data.status === 'Cicil' && Array.isArray(data.fase_pembayaran) && data.fase_pembayaran.map((fase, index) => (
+                                    <div key={index}>
+                                        <InputLabel htmlFor={`fase-${index}`} value={`Tanggal ${fase.cicilan}`} />
+                                        <TextInput
+                                            type="date"
+                                            id={`fase-${index}`}
+                                            name={`fase-${index}`}
+                                            className=' block w-full bg-transparent border-0 border-b border-gray-400 outline-none focus:ring-0 focus:border-black'
+                                            value={fase.tanggal || ''}
+
+                                            onChange={(e) => {
+                                                const updatedFase = [...data.fase_pembayaran];
+                                                updatedFase[index] = {
+                                                    ...updatedFase[index],
+                                                    tanggal: e.target.value
+                                                };
+                                                setData('fase_pembayaran', updatedFase);
+                                            }}
+                                        />
+                                    </div>
+                            ))}
+                            </div>
                             <div className="mt-4 flex items-center justify-end">
 
                                 <PrimaryButton className="ms-4" onSubmit={(e)=> submit(e)} disabled={processing}>

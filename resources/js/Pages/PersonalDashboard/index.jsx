@@ -36,14 +36,18 @@ export default function index({ absens, userName, users, tasks }) {
         const diffTime = deadline - today;
         const remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // days until deadline
     
-        if (remainingDays <= 1 && task.penanggung_jawab == userName) {
-            urgent.push(task);
-        } else if (remainingDays >= 2 && remainingDays <= 3 && task.penanggung_jawab == userName) {
-            soon.push(task); // Soon
-        } else if (remainingDays >= 4 && remainingDays <= 6 && task.penanggung_jawab == userName) {
+        if (remainingDays >= 0 && remainingDays <= 3) {
+            if(task.penanggung_jawab === userName){
+                urgent.push(task);
+            }
+        } else if (remainingDays >= 4 && remainingDays <= 7) {
+            if(task.penanggung_jawab === userName){
+                soon.push(task); // Soon
+            }
+        } else if (remainingDays >= 8) {
+            if(task.penanggung_jawab === userName){
             up_coming.push(task); // Upcoming
-        } else {
-            return 'bg-blue-700'; // Later
+            }
         }
     }
 
@@ -60,9 +64,7 @@ export default function index({ absens, userName, users, tasks }) {
             setHiddenUrgentTask(false)
         }
     }
-    const UrgentStatus = tasks.filter(task => {
-        return task.status === 'Urgent';
-    });
+    
 
     const soonTask = (value)=>{
         if(hiddenSoon === value){
@@ -71,9 +73,7 @@ export default function index({ absens, userName, users, tasks }) {
             setHiddenSoon(false)
         }
     }
-    const SoonStatus = tasks.filter(task => {
-        return task.status === 'Soon';
-    });
+    
 
     const upComingTask = (value)=>{
         if(hiddenUpComing === value){
@@ -82,9 +82,7 @@ export default function index({ absens, userName, users, tasks }) {
             setHiddenUpComing(false)
         }
     }
-    const upComingStatus = tasks.filter(task => {
-        return task.status === 'Up Coming';
-    });
+    
 
     // const formRef = useRef();
 
